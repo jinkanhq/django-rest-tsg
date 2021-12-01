@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "django-rest-tsg"
+version = "0.1.0"
+description = ""
+authors = ["yinian1992 <yinian@jinkan.org>"]
+
+[tool.poetry.dependencies]
+python = "~3.9.0"
+django = "^3.2.9"
+djangorestframework = "^3.12.4"
+djangorestframework-dataclasses = "^1.0.0"
+inflection = "^0.5.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+pytest-django = "^4.4.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "BFSU Mirror"
+url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"

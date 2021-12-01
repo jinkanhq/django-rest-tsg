@@ -1,0 +1,23 @@
+from django.db import models
+
+
+class Parent(models.Model):
+    question_text = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+
+
+class Child(models.Model):
+    parent = models.ForeignKey(Parent, on_delete=models.CASCADE)
+    parents = models.ManyToManyField(Parent, related_name='+')
+    text = models.TextField()
+    int_number = models.IntegerField()
+    uuid = models.UUIDField()
+    url = models.URLField()
+    description = models.TextField()
+    config = models.JSONField()
+    time = models.TimeField()
+    slug = models.SlugField()
+    ip_address = models.GenericIPAddressField()
+    email = models.EmailField()
+    bool_value = models.BooleanField()
+    float_number = models.FloatField()
