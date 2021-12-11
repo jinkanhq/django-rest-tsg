@@ -2,10 +2,10 @@ from collections import ChainMap
 from dataclasses import is_dataclass, fields, dataclass
 from datetime import datetime, date
 from enum import EnumMeta, IntEnum
-from pathlib import Path
 from typing import get_origin, get_args, Annotated, Union, Any, Type, Dict, Optional, List, Tuple, Literal
 
-from rest_framework.serializers import (Serializer, BaseSerializer, BooleanField, CharField, ChoiceField, DateField,
+from inflection import camelize
+from rest_framework.serializers import (Serializer, BooleanField, CharField, ChoiceField, DateField,
                                         DateTimeField, DecimalField, DictField, EmailField, Field, FilePathField,
                                         FloatField, HStoreField, IPAddressField, IntegerField, ModelSerializer,
                                         ManyRelatedField, JSONField, ListField, ListSerializer, MultipleChoiceField,
@@ -14,11 +14,7 @@ from rest_framework.serializers import (Serializer, BaseSerializer, BooleanField
 from rest_framework_dataclasses.fields import EnumField
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from inflection import camelize, dasherize
-
-from django_rest_tsg import VERSION
-from django_rest_tsg.templates import INTERFACE_TEMPLATE, INTERFACE_FIELD_TEMPLATE, ENUM_TEMPLATE, ENUM_MEMBER_TEMPLATE, \
-    IMPORT_TEMPLATE, HEADER_TEMPLATE
+from django_rest_tsg.templates import INTERFACE_TEMPLATE, INTERFACE_FIELD_TEMPLATE, ENUM_TEMPLATE, ENUM_MEMBER_TEMPLATE
 
 LEFT_BRACKET = '['
 RIGHT_BRACKET = ']'
@@ -92,27 +88,6 @@ class TypeScriptCode:
     source: Type[Any]
     content: str
     dependencies: List[Type]
-
-    def save(self, directory: Path, with_name: str = ''):
-        header = HEADER_TEMPLATE.substitute(generator='django-rest-tsg', version=VERSION,
-                                            type_fullname='.'.join((self.source.__module__,
-                                                                    self.source.__qualname__)),
-                                            date=datetime.now().isoformat())
-        for dependency in self.dependencies:
-            filename = dasherize(dependency.__name__)
-            if isinstance(dependency, EnumMeta):
-                filename += '.enum'
-            header += IMPORT_TEMPLATE.substitute(type=dependency.__name__,
-                                                 filename=filename)
-        header += '\n'
-        if not with_name:
-            with_name = dasherize(self.name)
-        if self.type == TypeScriptCodeType.ENUM:
-            filename = f"{with_name}.enum.ts"
-        else:
-            filename = f"{with_name}.ts"
-        typescript_file = directory / filename
-        typescript_file.write_text(header + self.content)
 
 
 def register(tp: Type, name: Optional[str] = None):
@@ -300,12 +275,12 @@ def get_serializer_prefix(serializer_class: Type[Serializer]):
     return serializer_class.__name__[:-10]
 
 
-def _get_serializer_field_type(field: Field) -> Tuple[str, list]:
+def _get_serializer_field_type(field: Field) -> Tuple[str, Optional[Type]]:
     """
     Get typescript type from trivial serializer field.
     """
     field_type: str
-    interface_dependencies = []
+    dependency = None
     if type(field) in DRF_FIELD_MAPPING:
         field_type = DRF_FIELD_MAPPING[type(field)]
     elif isinstance(field, ModelSerializer):
@@ -314,7 +289,7 @@ def _get_serializer_field_type(field: Field) -> Tuple[str, list]:
         field_type = field.Meta.dataclass.__name__
     elif isinstance(field, EnumField):
         field_type = field.enum_class.__name__
-        interface_dependencies.add(field.enum_class)
+        dependency = field.enum_class
     elif isinstance(field, ChoiceField):
         parts = []
         for value in field.choices.values():
@@ -328,16 +303,18 @@ def _get_serializer_field_type(field: Field) -> Tuple[str, list]:
         raise Exception('No explicit type hinting.')
     elif isinstance(field, ListSerializer):
         field_type = get_serializer_prefix(type(field.child)) + "[]"
-    elif isinstance(field, BaseSerializer):
+        dependency = type(field.child)
+    elif isinstance(field, Serializer):
         field_type = get_serializer_prefix(type(field))
-    return field_type, interface_dependencies
+        dependency = field
+    return field_type, dependency
 
 
 def get_serializer_field_type(field: Field) -> Tuple[str, list]:
     """
     Get typescript type from serializer field
 
-    Composite fields will be flatten.
+    Composite fields will be flattened.
     """
     stack = []
     result = ''
@@ -347,10 +324,10 @@ def get_serializer_field_type(field: Field) -> Tuple[str, list]:
             stack.append(type(field))
             field = field.child
         else:
-            field_type, interface_dependencies = _get_serializer_field_type(field)
+            field_type, field_dependency = _get_serializer_field_type(field)
+            if field_dependency:
+                dependencies.add(field_dependency)
             stack.append(field_type)
-            for dependency in interface_dependencies:
-                dependencies.add(dependency)
             break
     for item in reversed(stack):
         if item is ListField:
@@ -359,7 +336,7 @@ def get_serializer_field_type(field: Field) -> Tuple[str, list]:
             result = f'{{[index: string]: {result}}}'
         else:
             result = item
-    return result, list(dependencies)
+    return result, sorted(list(dependencies))
 
 
 def build_interface_from_serializer(serializer_class: Type[Serializer],
@@ -376,7 +353,9 @@ def build_interface_from_serializer(serializer_class: Type[Serializer],
         if field_type in DRF_FIELD_MAPPING:
             field_type = DRF_FIELD_MAPPING[field_type]
         else:
-            field_type, interface_dependencies = get_serializer_field_type(field_instance)
+            field_type, field_dependencies = get_serializer_field_type(field_instance)
+            for dependency in field_dependencies:
+                interface_dependencies.add(dependency)
         interface_fields.append(
             INTERFACE_FIELD_TEMPLATE.substitute(name=camelize(field_name, uppercase_first_letter=False),
                                                 type=field_type))
@@ -384,6 +363,6 @@ def build_interface_from_serializer(serializer_class: Type[Serializer],
     if not interface_name:
         interface_name = get_serializer_prefix(serializer_class)
     return TypeScriptCode(type=TypeScriptCodeType.INTERFACE, source=serializer_class, name=interface_name,
-                          dependencies=list(interface_dependencies),
+                          dependencies=sorted(list(interface_dependencies)),
                           content=INTERFACE_TEMPLATE.substitute(fields='\n'.join(interface_fields),
                                                                 name=interface_name))
