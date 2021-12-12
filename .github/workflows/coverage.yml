@@ -19,3 +19,5 @@ jobs:
         run: tox
       - name: Upload coverage
         uses: codecov/codecov-action@v2
+        with:
+          files: ./coverage.xml
