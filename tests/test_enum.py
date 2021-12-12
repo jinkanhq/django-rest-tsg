@@ -1,20 +1,8 @@
-from enum import Enum, IntEnum
-
 from django_rest_tsg import typescript
+from tests.models import PermissionFlag, ButtonType
 
 
 def test_int_enum():
-    class PermissionFlag(IntEnum):
-        EE = 1
-        EW = 1 << 1
-        ER = 1 << 2
-        GE = 1 << 3
-        GW = 1 << 4
-        GR = 1 << 5
-        OE = 1 << 6
-        OW = 1 << 7
-        OR = 1 << 8
-
     permission_flag = """export enum PermissionFlag {
   EE = 1,
   EW = 2,
@@ -33,12 +21,6 @@ def test_int_enum():
 
 
 def test_str_enum():
-    class ButtonType(Enum):
-        PRIMARY = 'primary'
-        DISABLED_PRIMARY = 'primary disabled'
-        SECONDARY = 'secondary'
-        DISABLED_SECONDARY = 'secondary disabled'
-
     button_type = """export enum ButtonType {
   Primary = 'primary',
   DisabledPrimary = 'primary disabled',

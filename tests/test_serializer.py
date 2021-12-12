@@ -1,5 +1,5 @@
 from django_rest_tsg import typescript
-from tests.serializers import ChildSerializer, PathSerializer
+from tests.serializers import ChildSerializer, ParentSerializer, PathSerializer
 
 
 def test_serializer():
@@ -37,6 +37,8 @@ def test_model_serializer():
 }"""
 
     code = typescript.build_interface_from_serializer(ChildSerializer)
+    assert len(code.dependencies) == 1
+    assert code.dependencies[0] == ParentSerializer
     assert code.content == choice_interface
     assert code.type == typescript.TypeScriptCodeType.INTERFACE
     assert code.source == ChildSerializer

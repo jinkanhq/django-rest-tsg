@@ -1,0 +1,21 @@
+name: Coverage
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.8", "3.9", "3.10"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Python ${{ matrix.python }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.pytpyhon }}
+      - name: Install dependencies
+        run: pip install tox tox-gh-actions codecov
+      - name: Run tox
+        run: tox
+      - name: Upload coverage
+        uses: codecov/codecov-action@v2
