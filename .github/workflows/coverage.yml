@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: ${{ matrix.pytpyhon }}
       - name: Install dependencies
-        run: pip install tox tox-gh-actions codecov
+        run: pip install poetry tox tox-gh-actions codecov
       - name: Run tox
         run: tox
       - name: Upload coverage
