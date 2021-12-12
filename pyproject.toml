@@ -46,10 +46,6 @@ pytest-cov = "^3.0.0"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[[tool.poetry.source]]
-name = "BFSU Mirror"
-url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
-
 [tool.tox]
 legacy_tox_ini = """
 [tox]
