@@ -1,3 +1,12 @@
+.. image:: https://github.com/jinkanhq/django-rest-tsg/actions/workflows/coverage.yml/badge.svg
+    :target: https://github.com/jinkanhq/django-rest-tsg/actions/workflows/coverage.yml
+
+.. image:: https://codecov.io/gh/jinkanhq/django-rest-tsg/branch/main/graph/badge.svg?token=LX8E3QB541
+    :target: https://codecov.io/gh/jinkanhq/django-rest-tsg
+
+.. image:: https://badge.fury.io/py/django-rest-tsg.svg
+    :target: https://badge.fury.io/py/django-rest-tsg
+
 django-rest-tsg
 ====================
 
