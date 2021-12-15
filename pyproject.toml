@@ -32,8 +32,8 @@ include = ["README.rst", "CHANGELOG.rst", "LICENSE"]
 
 [tool.poetry.dependencies]
 python = "^3.9.0"
-django = "^3.2.9"
-djangorestframework = "^3.12.4"
+django = "^3.0"
+djangorestframework = "^3.12"
 djangorestframework-dataclasses = "^1.0.0"
 inflection = "^0.5.1"
 
