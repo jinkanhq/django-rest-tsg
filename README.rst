@@ -25,9 +25,12 @@ Put a ``tsgconfig.py`` file with build tasks into your django project's root.
 
 .. code-block:: python
 
+    from django.conf import settings
     from django_rest_tsg.build import build
 
-    build_tasks = [
+    BUILD_DIR = settings.BASE_DIR / 'app/src/core'
+
+    BUILD_TASKS = [
         build(Foo),
         build(BarSerializer, 'app/src/app/core', {'alias': 'Foobar'}),
     ]
@@ -46,3 +49,9 @@ Run ``buildtypescript`` command on ``manage.py``.
 .. code-block:: bash
 
     $ python manage.py buildtypescript
+
+Or you can switch to another place.
+
+.. code-block:: bash
+
+    $ python manage.py buildtypescript --build-dir /somewhere/you/

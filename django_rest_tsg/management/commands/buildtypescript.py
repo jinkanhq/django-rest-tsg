@@ -20,7 +20,9 @@ class Command(BaseCommand):
         if not package_option:
             package_option = os.environ.get('DJANGO_SETTINGS_MODULE').rpartition('.')[0]
         module = importlib.import_module(package_option + '.tsgconfig')
-        build_dir: Path = getattr(module, 'BUILD_DIR', Path(build_dir_option))
+        build_dir: Path = getattr(module, 'BUILD_DIR', build_dir_option)
+        if isinstance(build_dir, str):
+            build_dir = Path(build_dir)
         if not build_dir:
             raise CommandError("No build_dir is specified.")
         config = TypeScriptBuilderConfig(tasks=getattr(module, 'BUILD_TASKS', []),
