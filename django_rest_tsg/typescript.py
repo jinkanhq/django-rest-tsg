@@ -2,7 +2,7 @@ from collections import ChainMap
 from dataclasses import is_dataclass, fields, dataclass
 from datetime import datetime, date
 from enum import EnumMeta, IntEnum
-from typing import get_origin, get_args, Annotated, Union, Any, Type, Dict, Optional, List, Tuple, Literal
+from typing import get_origin, get_args, Annotated, Union, Any, Type, Dict, Optional, List, Tuple, Literal, _Final
 
 from inflection import camelize
 from rest_framework.serializers import (Serializer, BooleanField, CharField, ChoiceField, DateField,
@@ -229,7 +229,8 @@ def build_type(tp) -> Tuple[str, List[Type]]:
     tokens = tokenize_python_type(tp)
     dependencies = [token for token in tokens if
                     token not in TYPE_MAPPING_WITH_GENERIC_FALLBACK and
-                    not type(token) in TRIVIAL_TYPE_MAPPING]
+                    not type(token) in TRIVIAL_TYPE_MAPPING and
+                    not isinstance(token, _Final)]
     return _build_type(tokens), dependencies
 
 
