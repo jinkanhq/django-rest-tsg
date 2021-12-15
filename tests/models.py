@@ -1,6 +1,11 @@
+from dataclasses import dataclass
+from datetime import date, datetime
 from enum import IntEnum, Enum
+from typing import Literal, Annotated, List, Optional, Dict, Union
 
 from django.db import models
+
+from django_rest_tsg import typescript
 
 
 class PermissionFlag(IntEnum):
@@ -42,3 +47,31 @@ class Child(models.Model):
     email = models.EmailField()
     bool_value = models.BooleanField()
     float_number = models.FloatField()
+
+
+@typescript.register
+@dataclass
+class User:
+    id: int
+    name: str
+    profile: dict
+    birth: date
+    last_logged_in: datetime
+    followers: list
+    status: Literal['active', 'disabled']
+    signature: Annotated[str, 'Something I can\'t explain']
+    public_keys: Annotated[List[str], 'SSH Keys']
+    matrix: List[list]
+    configs: List[dict]
+    is_staff: Optional[bool]
+    elo_rank: Dict[str, float]
+    magic_number: Literal[42]
+    button_type: ButtonType
+
+
+@dataclass
+class Department:
+    id: int
+    name: str
+    permissions: List[str]
+    principals: List[Union[User, int]]

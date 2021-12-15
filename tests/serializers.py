@@ -1,6 +1,7 @@
 from rest_framework import serializers
+from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from tests.models import Parent, Child
+from tests.models import Parent, Child, User, Department
 
 
 class ParentSerializer(serializers.ModelSerializer):
@@ -25,3 +26,15 @@ class PathSerializer(serializers.Serializer):
     stem = serializers.CharField()
     is_directory = serializers.BooleanField(source='is_dir')
     size = serializers.IntegerField(source='stat.st_size')
+
+
+class DepartmentSerializer(DataclassSerializer):
+    class Meta:
+        dataclass = Department
+
+
+class UserSerializer(DataclassSerializer):
+    departments = DepartmentSerializer(many=True)
+
+    class Meta:
+        dataclass = User
