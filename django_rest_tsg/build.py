@@ -10,8 +10,14 @@ from rest_framework.serializers import Serializer
 
 from django_rest_tsg import VERSION
 from django_rest_tsg.templates import HEADER_TEMPLATE, IMPORT_TEMPLATE
-from django_rest_tsg.typescript import (TypeScriptCode, build_interface_from_serializer, get_serializer_prefix,
-                                        build_interface_from_dataclass, build_enum, TypeScriptCodeType)
+from django_rest_tsg.typescript import (
+    TypeScriptCode,
+    build_interface_from_serializer,
+    get_serializer_prefix,
+    build_interface_from_dataclass,
+    build_enum,
+    TypeScriptCodeType,
+)
 
 
 class BuildException(Exception):
@@ -30,7 +36,7 @@ class TypeScriptBuildTask:
             default_name = get_serializer_prefix(self.type)
         else:
             default_name = self.type.__name__
-        return dasherize(underscore(self.options.get('alias', default_name)))
+        return dasherize(underscore(self.options.get("alias", default_name)))
 
 
 class TypeScriptBuildOptions(TypedDict, total=False):
@@ -44,8 +50,12 @@ class TypeScriptBuilderConfig:
     build_dir: Path
 
 
-def build(tp: Type, build_dir: Union[str, Path] = None, alias: str = None,
-          options: TypeScriptBuildOptions = None) -> TypeScriptBuildTask:
+def build(
+    tp: Type,
+    build_dir: Union[str, Path] = None,
+    alias: str = None,
+    options: TypeScriptBuildOptions = None,
+) -> TypeScriptBuildTask:
     """
     Shortcut factory for TypeScriptBuildTask.
     """
@@ -63,21 +73,21 @@ def build(tp: Type, build_dir: Union[str, Path] = None, alias: str = None,
     if build_dir:
         if isinstance(build_dir, str):
             build_dir = Path(build_dir)
-        options['build_dir'] = build_dir
+        options["build_dir"] = build_dir
     if alias:
-        options['alias'] = alias
+        options["alias"] = alias
     return TypeScriptBuildTask(type=tp, code=code, options=options)
 
 
 class TypeScriptBuilder:
     def __init__(self, config: TypeScriptBuilderConfig):
-        logger = logging.getLogger('django-rest-tsg')
+        logger = logging.getLogger("django-rest-tsg")
         logger.addHandler(logging.StreamHandler())
         self.tasks = config.tasks
         self.build_dir = config.build_dir
         self.type_options_mapping: Dict[Type, TypeScriptBuildOptions] = {}
         for task in self.tasks:
-            logger.info(f"Build task for \"{task.type}\" found.")
+            logger.info(f'Build task for "{task.type}" found.')
             self.type_options_mapping[task.type] = task.options
 
     def build_all(self):
@@ -87,22 +97,29 @@ class TypeScriptBuilder:
     def build_task(self, task: TypeScriptBuildTask):
         header = self.build_header(task)
         type_options = self.type_options_mapping.get(task.type, {})
-        typescript_file = type_options.get('build_dir', self.build_dir) / self.get_typescript_filename(task)
+        typescript_file = type_options.get(
+            "build_dir", self.build_dir
+        ) / self.get_typescript_filename(task)
         typescript_file.write_text(header + task.code.content)
 
     def build_header(self, task: TypeScriptBuildTask):
-        header = HEADER_TEMPLATE.substitute(generator='django-rest-tsg', version=VERSION,
-                                            type='.'.join((task.type.__module__,
-                                                           task.type.__qualname__)),
-                                            date=datetime.now().isoformat())
+        header = HEADER_TEMPLATE.substitute(
+            generator="django-rest-tsg",
+            version=VERSION,
+            type=".".join((task.type.__module__, task.type.__qualname__)),
+            date=datetime.now().isoformat(),
+        )
         for dependency in task.code.dependencies:
             dependency_options = self.type_options_mapping.get(dependency, {})
-            dependency_filename = dependency_options.get('alias', dasherize(underscore(dependency.__name__)))
+            dependency_filename = dependency_options.get(
+                "alias", dasherize(underscore(dependency.__name__))
+            )
             if isinstance(dependency, EnumMeta):
-                dependency_filename += '.enum'
-            header += IMPORT_TEMPLATE.substitute(type=dependency.__name__,
-                                                 filename=dependency_filename)
-        header += '\n'
+                dependency_filename += ".enum"
+            header += IMPORT_TEMPLATE.substitute(
+                type=dependency.__name__, filename=dependency_filename
+            )
+        header += "\n"
         return header
 
     def get_typescript_filename(self, task: TypeScriptBuildTask):

@@ -1,5 +1,11 @@
 from django_rest_tsg import typescript
-from tests.serializers import ChildSerializer, ParentSerializer, PathSerializer, UserSerializer
+from tests.serializers import (
+    ChildSerializer,
+    ParentSerializer,
+    PathSerializer,
+    UserSerializer,
+    DepartmentSerializer,
+)
 
 
 def test_serializer():
@@ -67,3 +73,14 @@ def test_dataclass_serializer():
     assert code.content == user_interface
     assert code.type == typescript.TypeScriptCodeType.INTERFACE
     assert code.source == UserSerializer
+
+    department_interface = """export interface Department {
+  id: number;
+  name: string;
+  permissions: string[];
+  principals: User[];
+}"""
+    code = typescript.build_interface_from_serializer(DepartmentSerializer)
+    assert code.content == department_interface
+    assert code.type == typescript.TypeScriptCodeType.INTERFACE
+    assert code.source == DepartmentSerializer

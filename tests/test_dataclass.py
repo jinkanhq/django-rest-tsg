@@ -3,7 +3,7 @@ from tests.models import User, Department
 
 
 def test_dataclass():
-    typescript.register(Department, 'Department')
+    typescript.register(Department, "Department")
 
     user_interface = """export interface User {
   id: number;
@@ -31,7 +31,7 @@ def test_dataclass():
   id: number;
   name: string;
   permissions: Array<string>;
-  principals: Array<User | number>;
+  principals: Array<User>;
 }"""
     code = typescript.build_interface_from_dataclass(Department)
     assert code.content == department_interface

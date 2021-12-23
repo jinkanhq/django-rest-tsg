@@ -2,36 +2,79 @@ from collections import ChainMap
 from dataclasses import is_dataclass, fields, dataclass
 from datetime import datetime, date
 from enum import EnumMeta, IntEnum
-from typing import get_origin, get_args, Annotated, Union, Any, Type, Dict, Optional, List, Tuple, Literal, _Final
+from typing import (
+    get_origin,
+    get_args,
+    Annotated,
+    Union,
+    Any,
+    Type,
+    Dict,
+    Optional,
+    List,
+    Tuple,
+    Literal,
+    _Final,
+)
 
 from inflection import camelize
-from rest_framework.serializers import (Serializer, BooleanField, CharField, ChoiceField, DateField,
-                                        DateTimeField, DecimalField, DictField, EmailField, Field, FilePathField,
-                                        FloatField, HStoreField, IPAddressField, IntegerField, ModelSerializer,
-                                        ManyRelatedField, JSONField, ListField, ListSerializer, MultipleChoiceField,
-                                        NullBooleanField, ReadOnlyField, RegexField, SerializerMethodField, SlugField,
-                                        TimeField, URLField, UUIDField)
+from rest_framework.serializers import (
+    Serializer,
+    BooleanField,
+    CharField,
+    ChoiceField,
+    DateField,
+    DateTimeField,
+    DecimalField,
+    DictField,
+    EmailField,
+    Field,
+    FilePathField,
+    FloatField,
+    HStoreField,
+    IPAddressField,
+    IntegerField,
+    ModelSerializer,
+    ManyRelatedField,
+    JSONField,
+    ListField,
+    ListSerializer,
+    MultipleChoiceField,
+    NullBooleanField,
+    ReadOnlyField,
+    RegexField,
+    SerializerMethodField,
+    SlugField,
+    TimeField,
+    URLField,
+    UUIDField,
+)
 from rest_framework_dataclasses.fields import EnumField
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from django_rest_tsg.templates import INTERFACE_TEMPLATE, INTERFACE_FIELD_TEMPLATE, ENUM_TEMPLATE, ENUM_MEMBER_TEMPLATE
+from django_rest_tsg.templates import (
+    INTERFACE_TEMPLATE,
+    INTERFACE_FIELD_TEMPLATE,
+    ENUM_TEMPLATE,
+    ENUM_MEMBER_TEMPLATE,
+)
 
-LEFT_BRACKET = '['
-RIGHT_BRACKET = ']'
-UNION_SEPARATOR = ' | '
+LEFT_BRACKET = "["
+RIGHT_BRACKET = "]"
+UNION_SEPARATOR = " | "
 
-TYPESCRIPT_NULLABLE = '?'
-TYPESCRIPT_ANY = 'any'
-TYPESCRIPT_STRING = 'string'
-TYPESCRIPT_NUMBER = 'number'
-TYPESCRIPT_BOOLEAN = 'boolean'
-TYPESCRIPT_DATE = 'Date'
+TYPESCRIPT_NULLABLE = "?"
+TYPESCRIPT_ANY = "any"
+TYPESCRIPT_STRING = "string"
+TYPESCRIPT_NUMBER = "number"
+TYPESCRIPT_BOOLEAN = "boolean"
+TYPESCRIPT_DATE = "Date"
 
 GENERICS = (tuple, list, dict, Union, Literal)
 GENERIC_FALLBACK_MAPPING = {
-    list: 'any[]',
-    tuple: 'any[]',
-    dict: 'object',
+    list: "any[]",
+    tuple: "any[]",
+    dict: "object",
 }
 TRIVIAL_TYPE_MAPPING: Dict[Type, str] = {
     int: TYPESCRIPT_NUMBER,
@@ -56,7 +99,7 @@ DRF_FIELD_MAPPING: Dict[Type[Field], str] = {
     IPAddressField: TYPESCRIPT_STRING,
     IntegerField: TYPESCRIPT_NUMBER,
     JSONField: TYPESCRIPT_ANY,
-    MultipleChoiceField: TYPESCRIPT_ANY + '[]',
+    MultipleChoiceField: TYPESCRIPT_ANY + "[]",
     NullBooleanField: TYPESCRIPT_BOOLEAN + TYPESCRIPT_NULLABLE,
     RegexField: TYPESCRIPT_STRING,
     ReadOnlyField: TYPESCRIPT_ANY,
@@ -68,8 +111,9 @@ DRF_FIELD_MAPPING: Dict[Type[Field], str] = {
 }
 USER_DEFINED_TYPE_MAPPING: Dict[Type, str] = {}
 TYPE_MAPPING = ChainMap(TRIVIAL_TYPE_MAPPING, USER_DEFINED_TYPE_MAPPING)
-TYPE_MAPPING_WITH_GENERIC_FALLBACK = ChainMap(TRIVIAL_TYPE_MAPPING, USER_DEFINED_TYPE_MAPPING,
-                                              GENERIC_FALLBACK_MAPPING)
+TYPE_MAPPING_WITH_GENERIC_FALLBACK = ChainMap(
+    TRIVIAL_TYPE_MAPPING, USER_DEFINED_TYPE_MAPPING, GENERIC_FALLBACK_MAPPING
+)
 
 
 class TypeScriptCodeType(IntEnum):
@@ -132,7 +176,12 @@ def tokenize_python_type(tp) -> list[Union[type, str]]:
             if top == RIGHT_BRACKET:
                 result.append(top)
                 continue
-            elif isinstance(top, str) or isinstance(top, int) or isinstance(top, float) or top in TYPE_MAPPING:
+            elif (
+                isinstance(top, str)
+                or isinstance(top, int)
+                or isinstance(top, float)
+                or top in TYPE_MAPPING
+            ):
                 result.append(top)
                 current_type = top
                 continue
@@ -157,7 +206,7 @@ def tokenize_python_type(tp) -> list[Union[type, str]]:
         elif current_type in (list, tuple):
             result += [current_type, LEFT_BRACKET, Any, RIGHT_BRACKET]
         elif current_type is dict:
-            result.append('object')
+            result.append("object")
     return result
 
 
@@ -205,8 +254,8 @@ def _build_generic_type(tp, children=None) -> str:
             for child in children:
                 if child == TYPESCRIPT_NULLABLE:
                     continue
-                return ''.join((child, TYPESCRIPT_NULLABLE))
-        return ' | '.join(children)
+                return "".join((child, TYPESCRIPT_NULLABLE))
+        return " | ".join(children)
     elif tp in (list, tuple) and children:
         return f"Array<{children[0]}>"
     elif tp is dict and children:
@@ -219,7 +268,7 @@ def _build_generic_type(tp, children=None) -> str:
             else:
                 part = str(child)
             parts.append(part)
-        return ' | '.join(parts)
+        return " | ".join(parts)
 
 
 def build_type(tp) -> Tuple[str, List[Type]]:
@@ -227,14 +276,19 @@ def build_type(tp) -> Tuple[str, List[Type]]:
     Build typescript type from python type.
     """
     tokens = tokenize_python_type(tp)
-    dependencies = [token for token in tokens if
-                    token not in TYPE_MAPPING_WITH_GENERIC_FALLBACK and
-                    not type(token) in TRIVIAL_TYPE_MAPPING and
-                    not isinstance(token, _Final)]
+    dependencies = [
+        token
+        for token in tokens
+        if token not in TYPE_MAPPING_WITH_GENERIC_FALLBACK
+        and not type(token) in TRIVIAL_TYPE_MAPPING
+        and not isinstance(token, _Final)
+    ]
     return _build_type(tokens), dependencies
 
 
-def build_enum(enum_tp: EnumMeta, enum_name: str = None, enforce_uppercase: bool = False) -> TypeScriptCode:
+def build_enum(
+    enum_tp: EnumMeta, enum_name: str = None, enforce_uppercase: bool = False
+) -> TypeScriptCode:
     """
     Build typescript enum from python enum.
     """
@@ -249,11 +303,20 @@ def build_enum(enum_tp: EnumMeta, enum_name: str = None, enforce_uppercase: bool
         else:
             member_name = camelize(name.lower(), uppercase_first_letter=False)
             member_name = member_name[0].upper() + member_name[1:]
-        enum_members.append(ENUM_MEMBER_TEMPLATE.substitute(name=member_name, value=member_value))
+        enum_members.append(
+            ENUM_MEMBER_TEMPLATE.substitute(name=member_name, value=member_value)
+        )
     if not enum_name:
         enum_name = enum_tp.__name__
-    return TypeScriptCode(type=TypeScriptCodeType.ENUM, source=enum_tp, name=enum_name, dependencies=[],
-                          content=ENUM_TEMPLATE.substitute(members=',\n'.join(enum_members), name=enum_tp.__name__))
+    return TypeScriptCode(
+        type=TypeScriptCodeType.ENUM,
+        source=enum_tp,
+        name=enum_name,
+        dependencies=[],
+        content=ENUM_TEMPLATE.substitute(
+            members=",\n".join(enum_members), name=enum_tp.__name__
+        ),
+    )
 
 
 def build_interface_from_dataclass(data_cls) -> TypeScriptCode:
@@ -267,12 +330,20 @@ def build_interface_from_dataclass(data_cls) -> TypeScriptCode:
         field_type_representation, field_dependencies = build_type(field.type)
         interface_dependencies |= set(field_dependencies)
         interface_fields.append(
-            INTERFACE_FIELD_TEMPLATE.substitute(name=camelize(field.name, uppercase_first_letter=False),
-                                                type=field_type_representation))
-    return TypeScriptCode(type=TypeScriptCodeType.INTERFACE, source=data_cls, name=data_cls.__name__,
-                          dependencies=list(interface_dependencies),
-                          content=INTERFACE_TEMPLATE.substitute(fields='\n'.join(interface_fields),
-                                                                name=data_cls.__name__))
+            INTERFACE_FIELD_TEMPLATE.substitute(
+                name=camelize(field.name, uppercase_first_letter=False),
+                type=field_type_representation,
+            )
+        )
+    return TypeScriptCode(
+        type=TypeScriptCodeType.INTERFACE,
+        source=data_cls,
+        name=data_cls.__name__,
+        dependencies=list(interface_dependencies),
+        content=INTERFACE_TEMPLATE.substitute(
+            fields="\n".join(interface_fields), name=data_cls.__name__
+        ),
+    )
 
 
 def get_serializer_prefix(serializer_class: Type[Serializer]):
@@ -291,7 +362,10 @@ def _get_serializer_field_type(field: Field) -> Tuple[str, Optional[Type]]:
     elif isinstance(field, ModelSerializer):
         field_type = field.Meta.model.__name__
     elif isinstance(field, DataclassSerializer):
-        field_type = field.Meta.dataclass.__name__
+        if field.dataclass:
+            field_type = field.dataclass.__name__
+        else:
+            field_type = field.Meta.dataclass.__name__
     elif isinstance(field, EnumField):
         field_type = field.enum_class.__name__
         dependency = field.enum_class
@@ -303,9 +377,9 @@ def _get_serializer_field_type(field: Field) -> Tuple[str, Optional[Type]]:
             else:
                 part = str(value)
             parts.append(part)
-        field_type = ' | '.join(parts)
+        field_type = " | ".join(parts)
     elif isinstance(field, ManyRelatedField):
-        raise Exception('No explicit type hinting.')
+        raise Exception("No explicit type hinting.")
     elif isinstance(field, ListSerializer):
         field_type = get_serializer_prefix(type(field.child)) + "[]"
         dependency = type(field.child)
@@ -326,7 +400,7 @@ def get_serializer_field_type(field: Field) -> Tuple[str, list]:
     Composite fields will be flattened.
     """
     stack = []
-    result = ''
+    result = ""
     dependencies = set()
     while True:
         if isinstance(field, (DictField, ListField)):
@@ -340,16 +414,17 @@ def get_serializer_field_type(field: Field) -> Tuple[str, list]:
             break
     for item in reversed(stack):
         if item is ListField:
-            result += '[]'
+            result += "[]"
         elif item is DictField:
-            result = f'{{[index: string]: {result}}}'
+            result = f"{{[index: string]: {result}}}"
         else:
             result = item
     return result, sorted(list(dependencies), key=lambda tp: tp.__name__)
 
 
-def build_interface_from_serializer(serializer_class: Type[Serializer],
-                                    interface_name: Optional[str] = None) -> TypeScriptCode:
+def build_interface_from_serializer(
+    serializer_class: Type[Serializer], interface_name: Optional[str] = None
+) -> TypeScriptCode:
     """
     Build typescript interface from django rest framework serializer.
     """
@@ -369,12 +444,19 @@ def build_interface_from_serializer(serializer_class: Type[Serializer],
             for dependency in field_dependencies:
                 interface_dependencies.add(dependency)
         interface_fields.append(
-            INTERFACE_FIELD_TEMPLATE.substitute(name=camelize(field_name, uppercase_first_letter=False),
-                                                type=field_type))
+            INTERFACE_FIELD_TEMPLATE.substitute(
+                name=camelize(field_name, uppercase_first_letter=False), type=field_type
+            )
+        )
 
     if not interface_name:
         interface_name = get_serializer_prefix(serializer_class)
-    return TypeScriptCode(type=TypeScriptCodeType.INTERFACE, source=serializer_class, name=interface_name,
-                          dependencies=sorted(list(interface_dependencies), key=lambda tp: tp.__name__),
-                          content=INTERFACE_TEMPLATE.substitute(fields='\n'.join(interface_fields),
-                                                                name=interface_name))
+    return TypeScriptCode(
+        type=TypeScriptCodeType.INTERFACE,
+        source=serializer_class,
+        name=interface_name,
+        dependencies=sorted(list(interface_dependencies), key=lambda tp: tp.__name__),
+        content=INTERFACE_TEMPLATE.substitute(
+            fields="\n".join(interface_fields), name=interface_name
+        ),
+    )

@@ -7,7 +7,7 @@ from tests.models import Parent, Child, User, Department
 class ParentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Parent
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ChildSerializer(serializers.ModelSerializer):
@@ -16,7 +16,7 @@ class ChildSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Child
-        fields = '__all__'
+        fields = "__all__"
 
 
 class PathSerializer(serializers.Serializer):
@@ -24,8 +24,8 @@ class PathSerializer(serializers.Serializer):
     suffix = serializers.CharField()
     suffixes = serializers.ListField(child=serializers.CharField())
     stem = serializers.CharField()
-    is_directory = serializers.BooleanField(source='is_dir')
-    size = serializers.IntegerField(source='stat.st_size')
+    is_directory = serializers.BooleanField(source="is_dir")
+    size = serializers.IntegerField(source="stat.st_size")
 
 
 class DepartmentSerializer(DataclassSerializer):

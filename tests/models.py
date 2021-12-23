@@ -21,20 +21,20 @@ class PermissionFlag(IntEnum):
 
 
 class ButtonType(Enum):
-    PRIMARY = 'primary'
-    DISABLED_PRIMARY = 'primary disabled'
-    SECONDARY = 'secondary'
-    DISABLED_SECONDARY = 'secondary disabled'
+    PRIMARY = "primary"
+    DISABLED_PRIMARY = "primary disabled"
+    SECONDARY = "secondary"
+    DISABLED_SECONDARY = "secondary disabled"
 
 
 class Parent(models.Model):
     question_text = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('date published')
+    pub_date = models.DateTimeField("date published")
 
 
 class Child(models.Model):
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE)
-    parents = models.ManyToManyField(Parent, related_name='+')
+    parents = models.ManyToManyField(Parent, related_name="+")
     text = models.TextField()
     int_number = models.IntegerField()
     uuid = models.UUIDField()
@@ -58,9 +58,9 @@ class User:
     birth: date
     last_logged_in: datetime
     followers: list
-    status: Literal['active', 'disabled']
-    signature: Annotated[str, 'Something I can\'t explain']
-    public_keys: Annotated[List[str], 'SSH Keys']
+    status: Literal["active", "disabled"]
+    signature: Annotated[str, "Something I can't explain"]
+    public_keys: Annotated[List[str], "SSH Keys"]
     matrix: List[list]
     configs: List[dict]
     is_staff: Optional[bool]
@@ -74,4 +74,4 @@ class Department:
     id: int
     name: str
     permissions: List[str]
-    principals: List[Union[User, int]]
+    principals: List[User]

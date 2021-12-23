@@ -6,5 +6,5 @@ BUILD_TASKS = [
     build(PathSerializer),
     build(ChildSerializer, alias="FoobarChild"),
     build(PermissionFlag),
-    build(User)
+    build(User),
 ]
