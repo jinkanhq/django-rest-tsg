@@ -385,7 +385,7 @@ def _get_serializer_field_type(field: Field) -> Tuple[str, Optional[Type]]:
         dependency = type(field.child)
     elif isinstance(field, Serializer):
         field_type = get_serializer_prefix(type(field))
-        dependency = field
+        dependency = type(field)
     else:
         field_type = TYPESCRIPT_ANY
     if field_type != TYPESCRIPT_ANY and field.allow_null:

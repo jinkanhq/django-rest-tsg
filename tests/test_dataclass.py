@@ -1,5 +1,5 @@
 from django_rest_tsg import typescript
-from tests.models import User, Department
+from tests.models import User, Department, UserList
 
 
 def test_dataclass():
@@ -37,3 +37,12 @@ def test_dataclass():
     assert code.content == department_interface
     assert code.type == typescript.TypeScriptCodeType.INTERFACE
     assert code.source == Department
+
+    user_list_interface = """export interface UserList {
+  id: number;
+  users: Array<User | number | string>;
+}"""
+    code = typescript.build_interface_from_dataclass(UserList)
+    assert code.content == user_list_interface
+    assert code.type == typescript.TypeScriptCodeType.INTERFACE
+    assert code.source == UserList

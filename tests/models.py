@@ -75,3 +75,9 @@ class Department:
     name: str
     permissions: List[str]
     principals: List[User]
+
+
+@dataclass
+class UserList:
+    id: int
+    users: List[Union[User, int, str]]

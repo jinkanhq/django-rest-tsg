@@ -34,7 +34,10 @@ class DepartmentSerializer(DataclassSerializer):
 
 
 class UserSerializer(DataclassSerializer):
+    primary_department = DepartmentSerializer()
     departments = DepartmentSerializer(many=True)
+    data_path = PathSerializer()
+
 
     class Meta:
         dataclass = User

@@ -52,7 +52,9 @@ def test_model_serializer():
 
 def test_dataclass_serializer():
     user_interface = """export interface User {
+  primaryDepartment: Department;
   departments: Department[];
+  dataPath: Path;
   id: number;
   name: string;
   profile: {[index: string]: any};
