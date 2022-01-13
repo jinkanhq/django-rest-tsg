@@ -5,6 +5,7 @@ from enum import EnumMeta
 from pathlib import Path
 from typing import Type, List, Dict, TypedDict, Union
 
+from django.conf import settings
 from inflection import dasherize, underscore
 from rest_framework.serializers import Serializer
 
@@ -67,7 +68,7 @@ def build(
     elif is_dataclass(tp):
         code = build_interface_from_dataclass(tp)
     else:
-        raise BuildException(f"Unsupported build type: {tp}")
+        raise BuildException(f"Unsupported build type: {tp.__name__}")
     if not options:
         options = {}
     if build_dir:
@@ -81,17 +82,25 @@ def build(
 
 class TypeScriptBuilder:
     def __init__(self, config: TypeScriptBuilderConfig):
-        logger = logging.getLogger("django-rest-tsg")
-        logger.addHandler(logging.StreamHandler())
+        self.logger = logging.getLogger("django-rest-tsg")
+        log_level = logging.DEBUG if settings.DEBUG else logging.INFO
+        self.logger.setLevel(log_level)
+        handler = logging.StreamHandler()
+        handler.setLevel(log_level)
+        formatter = logging.Formatter("%(asctime)s|%(name)s|%(levelname)s|%(message)s")
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
         self.tasks = config.tasks
         self.build_dir = config.build_dir
         self.type_options_mapping: Dict[Type, TypeScriptBuildOptions] = {}
+        self.logger.info(f"{len(self.tasks)} build tasks found.")
         for task in self.tasks:
-            logger.info(f'Build task for "{task.type}" found.')
+            self.logger.debug(f'Build task found: "{task.type.__name__}".')
             self.type_options_mapping[task.type] = task.options
 
     def build_all(self):
         for task in self.tasks:
+            self.logger.info(f'Building "{task.type.__name__}"...')
             self.build_task(task)
 
     def build_task(self, task: TypeScriptBuildTask):
@@ -101,6 +110,9 @@ class TypeScriptBuilder:
             "build_dir", self.build_dir
         ) / self.get_typescript_filename(task)
         typescript_file.write_text(header + task.code.content)
+        self.logger.debug(
+            f'Typescript code for "{task.type.__name__}" saved as "{typescript_file}".'
+        )
 
     def build_header(self, task: TypeScriptBuildTask):
         header = HEADER_TEMPLATE.substitute(
