@@ -34,10 +34,15 @@ class TypeScriptBuildTask:
     @property
     def filename(self):
         if issubclass(self.type, Serializer):
-            default_name = get_serializer_prefix(self.type)
+            default_stem = get_serializer_prefix(self.type)
         else:
-            default_name = self.type.__name__
-        return dasherize(underscore(self.options.get("alias", default_name)))
+            default_stem = self.type.__name__
+        stem = dasherize(underscore(self.options.get("alias", default_stem)))
+        if self.code.type == TypeScriptCodeType.ENUM:
+            result = f"{stem}.enum.ts"
+        else:
+            result = f"{stem}.ts"
+        return result
 
 
 class TypeScriptBuildOptions(TypedDict, total=False):
@@ -61,16 +66,16 @@ def build(
     Shortcut factory for TypeScriptBuildTask.
     """
     code: TypeScriptCode
-    if issubclass(tp, Serializer):
-        code = build_interface_from_serializer(tp)
-    elif isinstance(tp, EnumMeta):
-        code = build_enum(tp)
-    elif is_dataclass(tp):
-        code = build_interface_from_dataclass(tp)
-    else:
-        raise BuildException(f"Unsupported build type: {tp.__name__}")
     if not options:
         options = {}
+    if issubclass(tp, Serializer):
+        code = build_interface_from_serializer(tp, interface_name=options.get("alias"))
+    elif isinstance(tp, EnumMeta):
+        code = build_enum(tp, enum_name=options.get("alias"))
+    elif is_dataclass(tp):
+        code = build_interface_from_dataclass(tp, options)
+    else:
+        raise BuildException(f"Unsupported build type: {tp.__name__}")
     if build_dir:
         if isinstance(build_dir, str):
             build_dir = Path(build_dir)
@@ -106,9 +111,7 @@ class TypeScriptBuilder:
     def build_task(self, task: TypeScriptBuildTask):
         header = self.build_header(task)
         type_options = self.type_options_mapping.get(task.type, {})
-        typescript_file = type_options.get(
-            "build_dir", self.build_dir
-        ) / self.get_typescript_filename(task)
+        typescript_file = type_options.get("build_dir", self.build_dir) / task.filename
         typescript_file.write_text(header + task.code.content)
         self.logger.debug(
             f'Typescript code for "{task.type.__name__}" saved as "{typescript_file}".'
@@ -133,10 +136,3 @@ class TypeScriptBuilder:
             )
         header += "\n"
         return header
-
-    def get_typescript_filename(self, task: TypeScriptBuildTask):
-        if task.code.type == TypeScriptCodeType.ENUM:
-            filename = f"{task.filename}.enum.ts"
-        else:
-            filename = f"{task.filename}.ts"
-        return filename

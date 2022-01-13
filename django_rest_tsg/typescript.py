@@ -319,11 +319,15 @@ def build_enum(
     )
 
 
-def build_interface_from_dataclass(data_cls) -> TypeScriptCode:
+def build_interface_from_dataclass(
+    data_cls, interface_name: str = None
+) -> TypeScriptCode:
     """
     Build typescript interface from python dataclass.
     """
     assert is_dataclass(data_cls)
+    if not interface_name:
+        interface_name = data_cls.__name__
     interface_fields = []
     interface_dependencies = set()
     for field in fields(data_cls):
@@ -338,10 +342,10 @@ def build_interface_from_dataclass(data_cls) -> TypeScriptCode:
     return TypeScriptCode(
         type=TypeScriptCodeType.INTERFACE,
         source=data_cls,
-        name=data_cls.__name__,
+        name=interface_name,
         dependencies=list(interface_dependencies),
         content=INTERFACE_TEMPLATE.substitute(
-            fields="\n".join(interface_fields), name=data_cls.__name__
+            fields="\n".join(interface_fields), name=interface_name
         ),
     )
 
