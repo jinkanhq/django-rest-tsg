@@ -1,3 +1,10 @@
+0.1.3
+-------------
+* Enrich README content
+* Add builder logging
+* Fix alias failure
+* Fix aliases in typescript import statements
+
 0.1.2
 -------------
 * Get dataclass of DataclassSerializer from dataclass attribute when Meta is missing.

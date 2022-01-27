@@ -60,7 +60,6 @@ class TypeScriptBuilderConfig:
 
 def build(
     tp: Type,
-    build_dir: Union[str, Path] = None,
     options: TypeScriptBuildOptions = {},
 ) -> TypeScriptBuildTask:
     """
@@ -84,10 +83,9 @@ def build(
         code = build_interface_from_dataclass(tp, interface_name=alias)
     else:
         raise BuildException(f"Unsupported build type: {tp.__name__}")
-    if build_dir:
-        if isinstance(build_dir, str):
-            build_dir = Path(build_dir)
-        options["build_dir"] = build_dir
+    build_dir = options.get("build_dir")
+    if build_dir and isinstance(build_dir, str):
+        options["build_dir"] = Path(build)
     return TypeScriptBuildTask(type=tp, code=code, options=options)
 
 

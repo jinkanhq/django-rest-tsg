@@ -50,11 +50,11 @@ Put a ``tsgconfig.py`` file with build tasks into your django project's root.
     from django.conf import settings
     from django_rest_tsg.build import build
 
-    BUILD_DIR = settings.BASE_DIR / 'app/src/core'
+    BUILD_DIR = settings.BASE_DIR / "app/src/core"
 
     BUILD_TASKS = [
         build(Foo),
-        build(BarSerializer, 'app/src/app/core', {'alias': 'Foobar'}),
+        build(BarSerializer, {"alias": "Foobar"}),
     ]
 
 Add ``django_rest_tsg`` to your ``INSTALLED_APPS``.
@@ -63,7 +63,7 @@ Add ``django_rest_tsg`` to your ``INSTALLED_APPS``.
 
     INSTALLED_APPS = [
         ...
-        'django_rest_tsg'
+        "django_rest_tsg"
     ]
 
 Run ``buildtypescript`` command on ``manage.py``.
@@ -78,7 +78,7 @@ Or you can switch to another place.
 
     $ python manage.py buildtypescript --build-dir /somewhere/you/cannot/explain
 
-Result examples
+Examples
 -----------------
 
 Input: Serializer
@@ -109,3 +109,18 @@ Output: Interface
 There are more examples in `test cases`_.
 
 .. _test cases: https://github.com/jinkanhq/django-rest-tsg/tree/main/tests
+
+Build Options
+-----------------
+
+All options are listed in the table below.
+
++--------------------+-------------+--------------------+
+| Name               | Context     | Value              |
++====================+=============+====================+
+| alias              | All         | ``str``            |
++--------------------+-------------+--------------------+
+| build_dir (TODO)   | All         | ``str`` | ``Path`` |
++--------------------+-------------+--------------------+
+| enforce_uppercase  | Enum        | ``bool`` (False)   |
++--------------------+-------------+--------------------+
