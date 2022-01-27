@@ -2,8 +2,7 @@ from django_rest_tsg import typescript
 from tests.models import PermissionFlag, ButtonType
 
 
-def test_int_enum():
-    permission_flag = """export enum PermissionFlag {
+PERMISSION_FLAG_ENUM = """export enum PermissionFlag {
   EE = 1,
   EW = 2,
   ER = 4,
@@ -14,8 +13,11 @@ def test_int_enum():
   OW = 128,
   OR = 256
 }"""
+
+
+def test_int_enum():
     code = typescript.build_enum(PermissionFlag, enforce_uppercase=True)
-    assert code.content == permission_flag
+    assert code.content == PERMISSION_FLAG_ENUM
     assert code.type == typescript.TypeScriptCodeType.ENUM
     assert code.source == PermissionFlag
 

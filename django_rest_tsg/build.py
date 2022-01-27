@@ -13,11 +13,12 @@ from django_rest_tsg import VERSION
 from django_rest_tsg.templates import HEADER_TEMPLATE, IMPORT_TEMPLATE
 from django_rest_tsg.typescript import (
     TypeScriptCode,
+    TypeScriptCodeType,
+    build_enum,
+    build_interface_from_dataclass,
     build_interface_from_serializer,
     get_serializer_prefix,
-    build_interface_from_dataclass,
-    build_enum,
-    TypeScriptCodeType,
+    register,
 )
 
 
@@ -48,6 +49,7 @@ class TypeScriptBuildTask:
 class TypeScriptBuildOptions(TypedDict, total=False):
     alias: str
     build_dir: Path
+    enforce_uppercase: bool
 
 
 @dataclass
@@ -59,29 +61,33 @@ class TypeScriptBuilderConfig:
 def build(
     tp: Type,
     build_dir: Union[str, Path] = None,
-    alias: str = None,
-    options: TypeScriptBuildOptions = None,
+    options: TypeScriptBuildOptions = {},
 ) -> TypeScriptBuildTask:
     """
     Shortcut factory for TypeScriptBuildTask.
     """
+    alias = options.get("alias")
+    if alias:
+        register(tp, alias)
     code: TypeScriptCode
     if not options:
         options = {}
     if issubclass(tp, Serializer):
-        code = build_interface_from_serializer(tp, interface_name=options.get("alias"))
+        code = build_interface_from_serializer(tp, interface_name=alias)
     elif isinstance(tp, EnumMeta):
-        code = build_enum(tp, enum_name=options.get("alias"))
+        code = build_enum(
+            tp,
+            enum_name=alias,
+            enforce_uppercase=options.get("enforce_uppercase", False),
+        )
     elif is_dataclass(tp):
-        code = build_interface_from_dataclass(tp, options)
+        code = build_interface_from_dataclass(tp, interface_name=alias)
     else:
         raise BuildException(f"Unsupported build type: {tp.__name__}")
     if build_dir:
         if isinstance(build_dir, str):
             build_dir = Path(build_dir)
         options["build_dir"] = build_dir
-    if alias:
-        options["alias"] = alias
     return TypeScriptBuildTask(type=tp, code=code, options=options)
 
 
@@ -126,13 +132,18 @@ class TypeScriptBuilder:
         )
         for dependency in task.code.dependencies:
             dependency_options = self.type_options_mapping.get(dependency, {})
-            dependency_filename = dependency_options.get(
-                "alias", dasherize(underscore(dependency.__name__))
-            )
+            if "alias" in dependency_options:
+                dependency_name = dependency_options["alias"]
+            elif issubclass(dependency, Serializer):
+                dependency_name = get_serializer_prefix(dependency)
+            else:
+                dependency_name = dependency.__name__
+            dependency_filename = dasherize(underscore(dependency_name))
             if isinstance(dependency, EnumMeta):
                 dependency_filename += ".enum"
+            dependency_filename += ".ts"
             header += IMPORT_TEMPLATE.substitute(
-                type=dependency.__name__, filename=dependency_filename
+                type=dependency_name, filename=dependency_filename
             )
         header += "\n"
         return header

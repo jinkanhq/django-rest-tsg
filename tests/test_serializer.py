@@ -8,8 +8,7 @@ from tests.serializers import (
 )
 
 
-def test_serializer():
-    path_interface = """export interface Path {
+PATH_INTERFACE = """export interface Path {
   name: string;
   suffix: string;
   suffixes: string[];
@@ -17,14 +16,8 @@ def test_serializer():
   isDirectory: boolean;
   size: number;
 }"""
-    code = typescript.build_interface_from_serializer(PathSerializer)
-    assert code.content == path_interface
-    assert code.type == typescript.TypeScriptCodeType.INTERFACE
-    assert code.source == PathSerializer
 
-
-def test_model_serializer():
-    choice_interface = """export interface Child {
+CHOICE_INTERFACE = """export interface Child {
   id: number;
   parent: Parent;
   parents: Parent[];
@@ -42,16 +35,7 @@ def test_model_serializer():
   floatNumber: number;
 }"""
 
-    code = typescript.build_interface_from_serializer(ChildSerializer)
-    assert len(code.dependencies) == 1
-    assert code.dependencies[0] == ParentSerializer
-    assert code.content == choice_interface
-    assert code.type == typescript.TypeScriptCodeType.INTERFACE
-    assert code.source == ChildSerializer
-
-
-def test_dataclass_serializer():
-    user_interface = """export interface User {
+USER_INTERFACE = """export interface User {
   primaryDepartment: Department;
   departments: Department[];
   dataPath: Path;
@@ -71,18 +55,37 @@ def test_dataclass_serializer():
   magicNumber: 42;
   buttonType: ButtonType;
 }"""
-    code = typescript.build_interface_from_serializer(UserSerializer)
-    assert code.content == user_interface
-    assert code.type == typescript.TypeScriptCodeType.INTERFACE
-    assert code.source == UserSerializer
 
-    department_interface = """export interface Department {
+DEPARTMENT_INTERFACE = """export interface Department {
   id: number;
   name: string;
   permissions: string[];
   principals: User[];
 }"""
+
+
+def test_serializer():
+    code = typescript.build_interface_from_serializer(PathSerializer)
+    assert code.content == PATH_INTERFACE
+    assert code.type == typescript.TypeScriptCodeType.INTERFACE
+    assert code.source == PathSerializer
+
+
+def test_model_serializer():
+    code = typescript.build_interface_from_serializer(ChildSerializer)
+    assert len(code.dependencies) == 1
+    assert code.dependencies[0] == ParentSerializer
+    assert code.content == CHOICE_INTERFACE
+    assert code.type == typescript.TypeScriptCodeType.INTERFACE
+    assert code.source == ChildSerializer
+
+
+def test_dataclass_serializer():
+    code = typescript.build_interface_from_serializer(UserSerializer)
+    assert code.content == USER_INTERFACE
+    assert code.type == typescript.TypeScriptCodeType.INTERFACE
+    assert code.source == UserSerializer
     code = typescript.build_interface_from_serializer(DepartmentSerializer)
-    assert code.content == department_interface
+    assert code.content == DEPARTMENT_INTERFACE
     assert code.type == typescript.TypeScriptCodeType.INTERFACE
     assert code.source == DepartmentSerializer
