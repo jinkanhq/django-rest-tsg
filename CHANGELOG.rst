@@ -1,3 +1,8 @@
+0.1.4
+-------------
+
+* Add task-level build_dir support
+
 0.1.3
 -------------
 * Enrich README content
