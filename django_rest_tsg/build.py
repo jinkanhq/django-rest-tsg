@@ -48,23 +48,25 @@ class TypeScriptBuildTask:
 
 class TypeScriptBuildOptions(TypedDict, total=False):
     alias: str
-    build_dir: Path
+    build_dir: Union[str, Path]
     enforce_uppercase: bool
 
 
 @dataclass
 class TypeScriptBuilderConfig:
     tasks: List[TypeScriptBuildTask]
-    build_dir: Path
+    build_dir: Union[str, Path]
 
 
 def build(
     tp: Type,
-    options: TypeScriptBuildOptions = {},
+    options: TypeScriptBuildOptions = None,
 ) -> TypeScriptBuildTask:
     """
     Shortcut factory for TypeScriptBuildTask.
     """
+    if options is None:
+        options = {}
     alias = options.get("alias")
     if alias:
         register(tp, alias)
@@ -85,7 +87,7 @@ def build(
         raise BuildException(f"Unsupported build type: {tp.__name__}")
     build_dir = options.get("build_dir")
     if build_dir and isinstance(build_dir, str):
-        options["build_dir"] = Path(build)
+        options["build_dir"] = Path(build_dir)
     return TypeScriptBuildTask(type=tp, code=code, options=options)
 
 
@@ -115,7 +117,9 @@ class TypeScriptBuilder:
     def build_task(self, task: TypeScriptBuildTask):
         header = self.build_header(task)
         type_options = self.type_options_mapping.get(task.type, {})
-        typescript_file = type_options.get("build_dir", self.build_dir) / task.filename
+        build_dir = type_options.get("build_dir", self.build_dir)
+        build_dir.mkdir(parents=True, exist_ok=True)
+        typescript_file = build_dir / task.filename
         typescript_file.write_text(header + task.code.content)
         self.logger.debug(
             f'Typescript code for "{task.type.__name__}" saved as "{typescript_file}".'

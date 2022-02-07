@@ -2,10 +2,7 @@ from django_rest_tsg import typescript
 from tests.models import User, Department, UserList
 
 
-def test_dataclass():
-    typescript.register(Department, "Department")
-
-    user_interface = """export interface User {
+USER_INTERFACE = """export interface User {
   id: number;
   name: string;
   profile: object;
@@ -22,8 +19,12 @@ def test_dataclass():
   magicNumber: 42;
   buttonType: ButtonType;
 }"""
+
+
+def test_dataclass():
+    typescript.register(Department, "Department")
     code = typescript.build_interface_from_dataclass(User)
-    assert code.content == user_interface
+    assert code.content == USER_INTERFACE
     assert code.type == typescript.TypeScriptCodeType.INTERFACE
     assert code.source == User
 
