@@ -143,7 +143,6 @@ class TypeScriptBuilder:
             dependency_filename = dasherize(underscore(dependency_name))
             if isinstance(dependency, EnumMeta):
                 dependency_filename += ".enum"
-            dependency_filename += ".ts"
             header += IMPORT_TEMPLATE.substitute(
                 type=dependency_name, filename=dependency_filename
             )
