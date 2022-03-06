@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-rest-tsg"
-version = "0.1.4"
+version = "0.1.5"
 license = "MIT"
 description = "A typescript code generator for Django Rest Framework."
 readme = "README.rst"
