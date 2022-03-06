@@ -28,6 +28,11 @@ class PathSerializer(serializers.Serializer):
     size = serializers.IntegerField(source="stat.st_size")
 
 
+class PathWrapperSerializer(serializers.Serializer):
+    path = PathSerializer()
+    meta = serializers.JSONField()
+
+
 class DepartmentSerializer(DataclassSerializer):
     class Meta:
         dataclass = Department

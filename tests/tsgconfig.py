@@ -7,5 +7,5 @@ BUILD_TASKS = [
     build(ParentSerializer, options={"alias": "FoobarParent"}),
     build(ChildSerializer, options={"alias": "FoobarChild"}),
     build(PermissionFlag, options={"enforce_uppercase": True}),
-    build(User, options={"build_dir": "/tmp/django-rest-tsg"}),
+    build(User),
 ]

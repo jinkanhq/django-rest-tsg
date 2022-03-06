@@ -91,6 +91,25 @@ def build(
     return TypeScriptBuildTask(type=tp, code=code, options=options)
 
 
+def get_relative_path(path: Path, dependency_path: Path) -> str:
+    path_length = len(path.parts)
+    dependency_path_length = len(dependency_path.parts)
+    common_path_length = min(path_length, dependency_path_length)
+    break_idx = 0
+    for i in range(common_path_length):
+        if path.parts[i] != dependency_path.parts[i]:
+            break_idx = i
+            break
+    if common_path_length == dependency_path_length and break_idx == 0:
+        return f"./{dependency_path.name}"
+    levels = path_length - break_idx - 1
+    if levels > 0:
+        parents = levels * "../"
+    else:
+        parents = "./"
+    return parents + "/".join(dependency_path.parts[break_idx:])
+
+
 class TypeScriptBuilder:
     def __init__(self, config: TypeScriptBuilderConfig):
         self.logger = logging.getLogger("django-rest-tsg")
@@ -143,8 +162,11 @@ class TypeScriptBuilder:
             dependency_filename = dasherize(underscore(dependency_name))
             if isinstance(dependency, EnumMeta):
                 dependency_filename += ".enum"
+            build_dir = task.options.get("build_dir", self.build_dir)
+            dependency_build_dir = dependency_options.get("build_dir", self.build_dir)
+            dependency_path = get_relative_path(build_dir / "foobar", dependency_build_dir / dependency_filename)
             header += IMPORT_TEMPLATE.substitute(
-                type=dependency_name, filename=dependency_filename
+                type=dependency_name, filename=dependency_path
             )
         header += "\n"
         return header
