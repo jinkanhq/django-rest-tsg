@@ -19,7 +19,7 @@ Features
 It generates TypeScript codes from following Python types.
 
 * Django REST Framework serializers: manual working on ``Serializer``, ``ModelSerializer``
-  derived from Django ORM models, ``DataclassSerializer`` via `djangorestframework-dataclasses`_
+  derived from Django ORM models, ``DataclassSerializer`` via `djangorestframework-dataclasses`_.
 * Python dataclasses: Classes decorated by ``dataclasses.dataclass``.
 * Python enums: Subclasses of ``enum.Enum``.
 
@@ -30,14 +30,14 @@ It also supports nested types and composite types.
 Requirements
 --------------
 
-* Python >3.9
-* Django >3.0
-* Django REST Framework >3.12
+* Python >=3.9
+* Django >=3.0
+* Django REST Framework >=3.12
 
 Usage
 --------
 
-Install using ``pip``
+Install using ``pip``.
 
 .. code-block:: bash
 
