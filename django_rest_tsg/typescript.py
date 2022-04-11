@@ -367,9 +367,11 @@ def _get_serializer_field_type(field: Field) -> Tuple[str, Optional[Type]]:
         field_type = field.Meta.model.__name__
     elif isinstance(field, DataclassSerializer):
         if field.dataclass:
-            field_type = field.dataclass.__name__
+            dependency = field.dataclass
+            field_type = dependency.__name__
         else:
-            field_type = field.Meta.dataclass.__name__
+            dependency = field.Meta.dataclass
+            field_type = dependency.__name__
     elif isinstance(field, EnumField):
         field_type = field.enum_class.__name__
         dependency = field.enum_class

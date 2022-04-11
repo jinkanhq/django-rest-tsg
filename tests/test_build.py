@@ -11,7 +11,7 @@ from tests.models import User
 from tests.serializers import PathSerializer, PathWrapperSerializer
 from tests.test_dataclass import USER_INTERFACE
 from tests.tsgconfig import BUILD_TASKS
-from tests.test_serializer import PATH_INTERFACE
+from tests.test_serializer import PATH_INTERFACE, DEPARTMENT_INTERFACE
 from tests.test_enum import PERMISSION_FLAG_ENUM
 
 
@@ -42,6 +42,10 @@ export interface PathWrapper {
   meta: any;
 }"""
 
+DEPARTMENT_INTERFACE = """import { User } from './user';
+
+""" + DEPARTMENT_INTERFACE
+
 
 @pytest.fixture()
 def another_build_dir():
@@ -60,20 +64,20 @@ def skip_lines(content: str, lines: int = 4):
 def test_get_relative_path():
     path = Path("/var/tmp/django-rest-tsg/foo/bar.ts")
     dependency_path = Path("/var/tmp/cache/django-rest-tsg/bar/foo.ts")
-    assert str(get_relative_path(path, dependency_path)) == "../../cache/django-rest-tsg/bar/foo.ts"
+    assert get_relative_path(path, dependency_path) == "../../cache/django-rest-tsg/bar/foo.ts"
     path = Path("/var/tmp/django-rest-tsg/foo.ts")
     dependency_path = Path("/var/tmp/django-rest-tsg/foo/bar/foobar.ts")
-    assert str(get_relative_path(path, dependency_path)) == "./foo/bar/foobar.ts"
+    assert get_relative_path(path, dependency_path) == "./foo/bar/foobar.ts"
     path = Path("/var/tmp/django-rest-tsg/foo.ts")
     dependency_path = Path("/var/tmp/django-rest-tsg/bar.ts")
-    assert str(get_relative_path(path, dependency_path)) == "./bar.ts"
+    assert get_relative_path(path, dependency_path) == "./bar.ts"
 
 
 def test_builder(tmp_path: Path, another_build_dir: Path):
     sub_dir = another_build_dir / "sub"
     tasks = BUILD_TASKS[1:]
     tasks.insert(0, build(PathSerializer, options={"build_dir": another_build_dir}))
-    tasks.append(build(PathWrapperSerializer, options={"build_dir": another_build_dir / "sub"}))
+    tasks.append(build(PathWrapperSerializer, options={"build_dir": sub_dir}))
     config = TypeScriptBuilderConfig(build_dir=tmp_path, tasks=tasks)
     builder = TypeScriptBuilder(config)
     builder.build_all()
@@ -94,6 +98,8 @@ def test_builder(tmp_path: Path, another_build_dir: Path):
     assert skip_lines(tmp_files["user.ts"], 6) == USER_INTERFACE
     assert "path-wrapper.ts" in tmp_files
     assert skip_lines(tmp_files["path-wrapper.ts"]) == PATH_WRAPPER_INTERFACE
+    assert "department.ts" in tmp_files
+    assert skip_lines(tmp_files["department.ts"]) == DEPARTMENT_INTERFACE
 
 
 def test_command(tmp_path: Path):

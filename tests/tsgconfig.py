@@ -1,6 +1,6 @@
 from django_rest_tsg.build import build
 from tests.models import PermissionFlag, User
-from tests.serializers import ParentSerializer, PathSerializer, ChildSerializer
+from tests.serializers import ParentSerializer, PathSerializer, ChildSerializer, DepartmentSerializer
 
 BUILD_TASKS = [
     build(PathSerializer),
@@ -8,4 +8,5 @@ BUILD_TASKS = [
     build(ChildSerializer, options={"alias": "FoobarChild"}),
     build(PermissionFlag, options={"enforce_uppercase": True}),
     build(User),
+    build(DepartmentSerializer),
 ]
