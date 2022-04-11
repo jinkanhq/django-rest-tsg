@@ -47,8 +47,7 @@ build-backend = "poetry.core.masonry.api"
 legacy_tox_ini = """
 [tox]
 isolated_build = true
-envlist = py{39}-django{30,31}-drf{312}
-          py{39,310}-django{32}-drf{312}
+envlist = py{39,310}-django{32}-drf{312}
           py{39,310}-django{40}-drf{313}
 
 [gh-actions]
@@ -63,8 +62,6 @@ deps =
     pytest-cov>=3.0
     djangorestframework-dataclasses>=1.0.0
     inflection>=0.5.1
-    django30: Django>=3.0,<3.1
-    django31: Django>=3.1,<3.2
     django32: Django>=3.2,<3.3
     django40: Django>=4.0,<4.1
     drf312: djangorestframework>=3.12,<3.13
