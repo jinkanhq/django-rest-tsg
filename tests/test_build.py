@@ -1,13 +1,19 @@
 import shutil
 import tempfile
+import pytest
 from pathlib import Path
 from itertools import chain
 
-import pytest
 from django.core.management import call_command
+from rest_framework import serializers
 
-from django_rest_tsg.build import TypeScriptBuilder, TypeScriptBuilderConfig, build, get_relative_path
-from tests.models import User
+from django_rest_tsg.build import (
+    TypeScriptBuilder,
+    TypeScriptBuilderConfig,
+    build,
+    get_relative_path,
+    get_digest,
+)
 from tests.serializers import PathSerializer, PathWrapperSerializer
 from tests.test_dataclass import USER_INTERFACE
 from tests.tsgconfig import BUILD_TASKS
@@ -42,14 +48,17 @@ export interface PathWrapper {
   meta: any;
 }"""
 
-DEPARTMENT_INTERFACE = """import { User } from './user';
+DEPARTMENT_INTERFACE = (
+    """import { User } from './user';
 
-""" + DEPARTMENT_INTERFACE
+"""
+    + DEPARTMENT_INTERFACE
+)
 
 
 @pytest.fixture()
 def another_build_dir():
-    d = tempfile.TemporaryDirectory(prefix='django-rest-tsg')
+    d = tempfile.TemporaryDirectory(prefix="django-rest-tsg")
     path = Path(d.name)
     subdir = path / "sub"
     subdir.mkdir(exist_ok=True)
@@ -57,14 +66,17 @@ def another_build_dir():
     shutil.rmtree(path, ignore_errors=True)
 
 
-def skip_lines(content: str, lines: int = 4):
+def skip_lines(content: str, lines: int = 6):
     return "\n".join(content.splitlines()[lines:])
 
 
 def test_get_relative_path():
     path = Path("/var/tmp/django-rest-tsg/foo/bar.ts")
     dependency_path = Path("/var/tmp/cache/django-rest-tsg/bar/foo.ts")
-    assert get_relative_path(path, dependency_path) == "../../cache/django-rest-tsg/bar/foo.ts"
+    assert (
+        get_relative_path(path, dependency_path)
+        == "../../cache/django-rest-tsg/bar/foo.ts"
+    )
     path = Path("/var/tmp/django-rest-tsg/foo.ts")
     dependency_path = Path("/var/tmp/django-rest-tsg/foo/bar/foobar.ts")
     assert get_relative_path(path, dependency_path) == "./foo/bar/foobar.ts"
@@ -83,19 +95,21 @@ def test_builder(tmp_path: Path, another_build_dir: Path):
     builder.build_all()
     tmp_files = {
         file.name: file.read_text()
-        for file in chain(tmp_path.iterdir(),
-                          iter(f for f in another_build_dir.iterdir() if f.is_file()),
-                          sub_dir.iterdir())
+        for file in chain(
+            tmp_path.iterdir(),
+            iter(f for f in another_build_dir.iterdir() if f.is_file()),
+            sub_dir.iterdir(),
+        )
     }
     assert len(tmp_files) == len(tasks)
     assert "path.ts" in tmp_files
-    assert skip_lines(tmp_files["path.ts"], 5) == PATH_INTERFACE
+    assert skip_lines(tmp_files["path.ts"]) == PATH_INTERFACE
     assert "foobar-child.ts" in tmp_files
     assert skip_lines(tmp_files["foobar-child.ts"]) == FOOBAR_CHILD_INTERFACE
     assert "permission-flag.enum.ts" in tmp_files
-    assert skip_lines(tmp_files["permission-flag.enum.ts"], 5) == PERMISSION_FLAG_ENUM
+    assert skip_lines(tmp_files["permission-flag.enum.ts"], 6) == PERMISSION_FLAG_ENUM
     assert "user.ts" in tmp_files
-    assert skip_lines(tmp_files["user.ts"], 6) == USER_INTERFACE
+    assert skip_lines(tmp_files["user.ts"], 8) == USER_INTERFACE
     assert "path-wrapper.ts" in tmp_files
     assert skip_lines(tmp_files["path-wrapper.ts"]) == PATH_WRAPPER_INTERFACE
     assert "department.ts" in tmp_files
@@ -112,3 +126,35 @@ def test_command(tmp_path: Path):
     assert "path.ts" in tmp_files
     assert "foobar-child.ts" in tmp_files
     assert "permission-flag.enum.ts" in tmp_files
+
+
+def test_content_change(tmp_path: Path):
+    tasks = [build(PathSerializer)]
+    config = TypeScriptBuilderConfig(build_dir=tmp_path, tasks=tasks)
+    builder = TypeScriptBuilder(config)
+    builder.build_all()
+    build_file = tmp_path / "path.ts"
+    digest = get_digest(build_file)
+    content = build_file.read_text()
+    last_modified_on = build_file.stat().st_mtime
+    # no change
+    builder.build_all()
+    same_digest = get_digest(build_file)
+    same_content = build_file.read_text()
+    same_last_modified_on = build_file.stat().st_mtime
+    assert digest == same_digest
+    assert content == same_content
+    assert last_modified_on == same_last_modified_on
+    # add field
+    class PathVersion2Serializer(PathSerializer):
+        metadata = serializers.JSONField()
+
+    tasks = [build(PathVersion2Serializer, {"alias": "Path"})]
+    config = TypeScriptBuilderConfig(build_dir=tmp_path, tasks=tasks)
+    builder = TypeScriptBuilder(config)
+    builder.build_all()
+    digest_v2 = get_digest(build_file)
+    last_modified_on_v2 = build_file.stat().st_mtime
+
+    assert digest != digest_v2
+    assert last_modified_on_v2 > last_modified_on

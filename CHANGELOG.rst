@@ -1,8 +1,12 @@
+0.1.6
+-------------
+* Fix missing dependencies when flatten DataclassSerializer.
+* Write to file only if task content changes.
+
 0.1.5
 -------------
 
 * Fix dependency path of import statements when build_dir is specified in options.
-
 
 0.1.4
 -------------

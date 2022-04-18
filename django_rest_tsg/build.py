@@ -1,4 +1,5 @@
 import logging
+import hashlib
 from dataclasses import dataclass, is_dataclass
 from datetime import datetime
 from enum import EnumMeta
@@ -110,6 +111,17 @@ def get_relative_path(path: Path, dependency_path: Path) -> str:
     return parents + "/".join(dependency_path.parts[break_idx:])
 
 
+def get_digest(typescript_file: Path) -> str:
+    with typescript_file.open("r") as f:
+        for i, line in enumerate(f):
+            line: str
+            if i == 3 and line.startswith("// Digest: ") and len(line) == 64 + 11 + 1:
+                return line[11:-1]
+            if i > 3:
+                break
+    return ""
+
+
 class TypeScriptBuilder:
     def __init__(self, config: TypeScriptBuilderConfig):
         self.logger = logging.getLogger("django-rest-tsg")
@@ -134,23 +146,43 @@ class TypeScriptBuilder:
             self.build_task(task)
 
     def build_task(self, task: TypeScriptBuildTask):
-        header = self.build_header(task)
         type_options = self.type_options_mapping.get(task.type, {})
         build_dir = type_options.get("build_dir", self.build_dir)
         build_dir.mkdir(parents=True, exist_ok=True)
         typescript_file = build_dir / task.filename
-        typescript_file.write_text(header + task.code.content)
+        hexdigest = None
+        if typescript_file.exists():
+            hexdigest = get_digest(typescript_file)
+        import_statements = self.build_import_statements(task)
+        content_without_header = import_statements + task.code.content
+        content_without_header_hexdigest = hashlib.sha256(
+            content_without_header.encode("utf8")
+        ).hexdigest()
+        if hexdigest == content_without_header_hexdigest:
+            self.logger.info(
+                f'No change in content. Skip saving task "{task.type.__name__}".'
+            )
+            return
+
+        header = self.build_header(task, content_without_header_hexdigest)
+        typescript_file.write_text(header + content_without_header)
         self.logger.debug(
             f'Typescript code for "{task.type.__name__}" saved as "{typescript_file}".'
         )
 
-    def build_header(self, task: TypeScriptBuildTask):
+    def build_header(self, task: TypeScriptBuildTask, hexdigest: str):
         header = HEADER_TEMPLATE.substitute(
             generator="django-rest-tsg",
             version=VERSION,
             type=".".join((task.type.__module__, task.type.__qualname__)),
             date=datetime.now().isoformat(),
+            digest=hexdigest,
         )
+        header += "\n"
+        return header
+
+    def build_import_statements(self, task: TypeScriptBuildTask):
+        result = ""
         for dependency in task.code.dependencies:
             dependency_options = self.type_options_mapping.get(dependency, {})
             if "alias" in dependency_options:
@@ -164,9 +196,12 @@ class TypeScriptBuilder:
                 dependency_filename += ".enum"
             build_dir = task.options.get("build_dir", self.build_dir)
             dependency_build_dir = dependency_options.get("build_dir", self.build_dir)
-            dependency_path = get_relative_path(build_dir / "foobar", dependency_build_dir / dependency_filename)
-            header += IMPORT_TEMPLATE.substitute(
+            dependency_path = get_relative_path(
+                build_dir / "foobar", dependency_build_dir / dependency_filename
+            )
+            result += IMPORT_TEMPLATE.substitute(
                 type=dependency_name, filename=dependency_path
             )
-        header += "\n"
-        return header
+        if result:
+            result += "\n"
+        return result
