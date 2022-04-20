@@ -1,5 +1,7 @@
 import shutil
 import tempfile
+import time
+
 import pytest
 from pathlib import Path
 from itertools import chain
@@ -54,6 +56,16 @@ DEPARTMENT_INTERFACE = (
 """
     + DEPARTMENT_INTERFACE
 )
+
+PATH_V2_INTERFACE = """export interface Path {
+  name: string;
+  suffix: string;
+  suffixes: string[];
+  stem: string;
+  isDirectory: boolean;
+  size: number;
+  metadata: any;
+}"""
 
 
 @pytest.fixture()
@@ -152,9 +164,11 @@ def test_content_change(tmp_path: Path):
     tasks = [build(PathVersion2Serializer, {"alias": "Path"})]
     config = TypeScriptBuilderConfig(build_dir=tmp_path, tasks=tasks)
     builder = TypeScriptBuilder(config)
+    time.sleep(0.1)
     builder.build_all()
     digest_v2 = get_digest(build_file)
     last_modified_on_v2 = build_file.stat().st_mtime
 
+    assert skip_lines(build_file.read_text()) == PATH_V2_INTERFACE
     assert digest != digest_v2
     assert last_modified_on_v2 > last_modified_on
