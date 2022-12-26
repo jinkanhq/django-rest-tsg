@@ -17,6 +17,7 @@ from typing import (
     _Final,
 )
 
+import rest_framework
 from inflection import camelize
 from rest_framework.serializers import (
     Serializer,
@@ -40,7 +41,6 @@ from rest_framework.serializers import (
     ListField,
     ListSerializer,
     MultipleChoiceField,
-    NullBooleanField,
     ReadOnlyField,
     RegexField,
     SerializerMethodField,
@@ -51,6 +51,11 @@ from rest_framework.serializers import (
 )
 from rest_framework_dataclasses.fields import EnumField
 from rest_framework_dataclasses.serializers import DataclassSerializer
+
+if rest_framework.VERSION >= "3.14.0":
+    NullBooleanField = "RemovedInDRF314"
+else:
+    from rest_framework.serializers import NullBooleanField
 
 from django_rest_tsg.templates import (
     INTERFACE_TEMPLATE,
