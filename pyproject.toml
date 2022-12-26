@@ -14,12 +14,14 @@ classifiers = [
     "Framework :: Django :: 3.1",
     "Framework :: Django :: 3.2",
     "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Code Generators",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -30,7 +32,7 @@ include = ["README.rst", "CHANGELOG.rst", "LICENSE"]
 [tool.poetry.dependencies]
 python = "^3.9.0"
 django = "^3.0"
-djangorestframework = "^3.12"
+djangorestframework = "^3.13"
 djangorestframework-dataclasses = "^1.0.0"
 inflection = "^0.5.1"
 
@@ -47,13 +49,14 @@ build-backend = "poetry.core.masonry.api"
 legacy_tox_ini = """
 [tox]
 isolated_build = true
-envlist = py{39,310}-django{32}-drf{312}
-          py{39,310}-django{40}-drf{313}
+envlist = py{39,310}-django{32}-drf{313,314}
+          py{39,310,311}-django{40,41}-drf{313,314}
 
 [gh-actions]
 python =
     3.9: py39
     3.10: py310
+    3.11: py311
 
 [testenv]
 deps =
@@ -64,8 +67,9 @@ deps =
     inflection>=0.5.1
     django32: Django>=3.2,<3.3
     django40: Django>=4.0,<4.1
-    drf312: djangorestframework>=3.12,<3.13
+    django41: Django>=4.1,<4.2
     drf313: djangorestframework>=3.13,<3.14
+    drf314: djangorestframework>=3.14,<3.15
 allowlist_externals = poetry
 commands =
     poetry run pytest --cov=./ --cov-report=xml
