@@ -1,3 +1,8 @@
+0.1.7
+-------------
+* Bump django version to 4.1
+* Bump djangorestframework version to 3.14
+
 0.1.6
 -------------
 * Fix missing dependencies when flatten DataclassSerializer.
