@@ -1,7 +1,11 @@
+0.1.8
+-------------
+* Bump django version to 4.2.
+
 0.1.7
 -------------
-* Bump django version to 4.1
-* Bump djangorestframework version to 3.14
+* Bump django version to 4.1.
+* Bump djangorestframework version to 3.14.
 
 0.1.6
 -------------
