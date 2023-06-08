@@ -15,6 +15,7 @@ classifiers = [
     "Framework :: Django :: 3.2",
     "Framework :: Django :: 4.0",
     "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -51,7 +52,7 @@ legacy_tox_ini = """
 isolated_build = true
 envlist = py{39,310}-django{32}-drf{313,314}
           py{39,310,311}-django{40}-drf{313,314}
-          py{39,310,311}-django{41}-drf{314}
+          py{39,310,311}-django{41,42}-drf{314}
 
 [gh-actions]
 python =
@@ -69,6 +70,7 @@ deps =
     django32: Django>=3.2,<3.3
     django40: Django>=4.0,<4.1
     django41: Django>=4.1,<4.2
+    django42: Django>=4.2,<4.3
     drf313: djangorestframework>=3.13,<3.14
     drf314: djangorestframework>=3.14,<3.15
 allowlist_externals = poetry
