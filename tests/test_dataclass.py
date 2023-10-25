@@ -14,7 +14,7 @@ USER_INTERFACE = """export interface User {
   publicKeys: Array<string>;
   matrix: Array<Array<any>>;
   configs: Array<object>;
-  isStaff: boolean?;
+  isStaff: boolean | null;
   eloRank: {[key: string]: number};
   magicNumber: 42;
   buttonType: ButtonType;

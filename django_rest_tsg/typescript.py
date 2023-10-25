@@ -19,6 +19,7 @@ from typing import (
 
 import rest_framework
 from inflection import camelize
+from inspect import isclass
 from rest_framework.serializers import (
     Serializer,
     BooleanField,
@@ -68,7 +69,7 @@ LEFT_BRACKET = "["
 RIGHT_BRACKET = "]"
 UNION_SEPARATOR = " | "
 
-TYPESCRIPT_NULLABLE = "?"
+TYPESCRIPT_NULLABLE = " | null"
 TYPESCRIPT_ANY = "any"
 TYPESCRIPT_STRING = "string"
 TYPESCRIPT_NUMBER = "number"
@@ -100,7 +101,7 @@ DRF_FIELD_MAPPING: Dict[Type[Field], str] = {
     EmailField: TYPESCRIPT_STRING,
     FilePathField: TYPESCRIPT_STRING,
     FloatField: TYPESCRIPT_NUMBER,
-    HStoreField: "{[index: string]: string?}",
+    HStoreField: "{[index: string]: string | null}",
     IPAddressField: TYPESCRIPT_STRING,
     IntegerField: TYPESCRIPT_NUMBER,
     JSONField: TYPESCRIPT_ANY,
@@ -131,7 +132,6 @@ class TypeScriptCode:
     """
     TypeScript code snippet.
     """
-
     name: str
     type: TypeScriptCodeType
     source: Type[Any]
@@ -414,7 +414,7 @@ def get_serializer_field_type(field: Field) -> Tuple[str, list]:
     result = ""
     dependencies = set()
     while True:
-        if isinstance(field, (DictField, ListField)):
+        if isinstance(field, (DictField, ListField)): 
             stack.append(type(field))
             field = field.child
         else:
@@ -424,10 +424,11 @@ def get_serializer_field_type(field: Field) -> Tuple[str, list]:
             stack.append(field_type)
             break
     for item in reversed(stack):
-        if item is ListField:
-            result += "[]"
-        elif item is DictField:
-            result = f"{{[index: string]: {result}}}"
+        if isclass(item):
+            if issubclass(item, ListField):
+                result += "[]"
+            elif issubclass(item, DictField):
+                result = f"{{[index: string]: {result}}}"
         else:
             result = item
     return result, sorted(list(dependencies), key=lambda tp: tp.__name__)
