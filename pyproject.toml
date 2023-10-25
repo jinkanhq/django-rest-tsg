@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-rest-tsg"
-version = "0.1.8"
+version = "0.1.9"
 license = "MIT"
 description = "A typescript code generator for Django Rest Framework."
 readme = "README.rst"
@@ -34,7 +34,7 @@ include = ["README.rst", "CHANGELOG.rst", "LICENSE"]
 python = "^3.9.0"
 django = "^3.0"
 djangorestframework = "^3.13"
-djangorestframework-dataclasses = "^1.0.0"
+djangorestframework-dataclasses = "^1.3.0"
 inflection = "^0.5.1"
 
 [tool.poetry.dev-dependencies]
@@ -65,7 +65,7 @@ deps =
     pytest>=6.2.5
     pytest-django>=4.4.0
     pytest-cov>=3.0
-    djangorestframework-dataclasses>=1.0.0
+    djangorestframework-dataclasses>=1.3.0
     inflection>=0.5.1
     django32: Django>=3.2,<3.3
     django40: Django>=4.0,<4.1

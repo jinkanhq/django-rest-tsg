@@ -1,3 +1,10 @@
+0.1.9
+-------------
+
+* Bump djangorestframework-dataclasses version to 1.3.0.
+* Fix nullable representation for field with allow_null as true.
+
+
 0.1.8
 -------------
 * Bump django version to 4.2.
