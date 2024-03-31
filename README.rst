@@ -1,11 +1,13 @@
-.. image:: https://github.com/jinkanhq/django-rest-tsg/actions/workflows/coverage.yml/badge.svg
+.. |coverage-passing| image:: https://github.com/jinkanhq/django-rest-tsg/actions/workflows/coverage.yml/badge.svg
     :target: https://github.com/jinkanhq/django-rest-tsg/actions/workflows/coverage.yml
 
-.. image:: https://codecov.io/gh/jinkanhq/django-rest-tsg/branch/main/graph/badge.svg?token=LX8E3QB541
+.. |coverage| image:: https://codecov.io/gh/jinkanhq/django-rest-tsg/branch/main/graph/badge.svg?token=LX8E3QB541
     :target: https://codecov.io/gh/jinkanhq/django-rest-tsg
 
-.. image:: https://badge.fury.io/py/django-rest-tsg.svg
+.. |pypi| image:: https://badge.fury.io/py/django-rest-tsg.svg
     :target: https://badge.fury.io/py/django-rest-tsg
+
+|coverage-passing| |coverage| |pypi|
 
 django-rest-tsg
 ====================
@@ -31,7 +33,7 @@ Requirements
 --------------
 
 * Python >=3.9
-* Django >=3.0
+* Django >=3.2
 * Django REST Framework >=3.12
 
 Usage

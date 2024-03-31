@@ -1,3 +1,11 @@
+0.1.10
+-------------
+
+* Bump python version to 3.12.
+* Bump django version to 5.0.
+* Bump djangorestframework version to 3.15.
+
+
 0.1.9
 -------------
 
